@@ -1,0 +1,162 @@
+---
+title: "Statistical Analysis of TU/TY"
+date: April 12, 2017
+runtime: shiny
+output: 
+  html_document:
+   # css: style.css
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r, echo=F, message=FALSE, warning=F, comment=F}
+packages.used=c("dplyr", "shiny","latex2exp");
+
+# check packages that need to be installed.
+packages.needed=setdiff(packages.used, 
+                        intersect(installed.packages()[,1], 
+                                  packages.used));
+
+library("dplyr")
+library("latex2exp")
+source("../lib/functions.R")
+```
+
+### 1. Load data
+```{r, echo=F}
+load("../data/TU.RData")
+load("../data/TY.RData")
+
+#### original import if no .RData
+#TUdata = read.table("../data/TU-5min.asc", header=T, sep=",")
+#TYdata = read.table("../data/TY-5min.asc", header=T, sep=",")
+#TU <- TUdata %>% select(Date,Time,Close)
+#TY <- TYdata %>% select(Date,Time,Close)
+```
+
+```{r echo = FALSE}
+selectInput("data1", label = "Choose dataset:",
+              choices = c("TU", "TY"), selected = "TU")
+
+reactive({
+  if (input$data1=="TU") {
+    print("Head:")
+    print(head(TU))
+    print("Tail:")
+    print(tail(TU))
+  }
+  else {
+    print("Head:")
+    print(head(TY))
+    print("Tail:")
+    print(tail(TY))
+  }
+})
+```
+
+### 2. Visualize Time Series and differentiated TS
+
+```{r, echo=F}
+selectInput("data2", label = "Choose dataset:",
+              choices = c("TU", "TY"), selected = "TU")
+
+renderPlot({
+  if (input$data2=="TU") {
+    x <- seq(from=1, to=length(TU$Close), by=100)
+plot((x-1)*5/(60*24*365.25), TU$Close[x], xlab="Time (year)", ylab="Close price", main="Evolution of TU close price since 1991",type='l')
+  }
+  else {
+    x <- seq(from=1, to=length(TY$Close), by=100)
+plot((x-1)*5/(60*24*365.25), TY$Close[x], xlab="Time (year)", ylab="Close price", main="Evolution of TY close price since 1983", type='l')
+  }
+}, width = 900, height = 800)
+```
+
+```{r, echo=F}
+fluidRow(style = "padding-bottom: 20px;",
+  selectInput("data2.1", label = "Choose dataset:",
+              choices = c("TU", "TY"), selected = "TU"),
+  sliderInput("shift1", "Shift (multiple of 5min):", min = 1, max = 100000, value = 10000))
+
+renderPlot({
+  if (input$data2.1=="TU") {
+    x <- 1:(length(TU$Close)-input$shift1)
+    y <- diff(TU$Close, input$shift1)
+    statEq <- paste("For $\\tau =",input$shift1, "$: $\\hat{\\mu} =",round(mean(y),4),"$ and $ \\hat{\\sigma} = ",round(sd(y),4),"$",sep="")
+plot((x-1)*5/(60*24*365.25), y, xlab="Time (year)", ylab="Differentiated close price", main="Evolution of differentiated TU close price since 1991", type='l')
+text(weighted.mean(range((x-1)*5/(60*24*365.25),c(0.9,0.1))),weighted.mean(range(y),c(0.98,0.02)),labels=TeX(statEq),adj = 0, cex=1)
+  }
+  else {
+    x <- 1:(length(TY$Close)-input$shift1)
+    y <- diff(TY$Close, input$shift1)
+    statEq <- paste("For $\\tau =",input$shift1, "$: $\\hat{\\mu} =",round(mean(y),4),"$ and $ \\hat{\\sigma} = ",round(sd(y),4),"$",sep="")
+plot((x-1)*5/(60*24*365.25), y, xlab="Time (year)", ylab="Close price", main="Evolution of differentiated TY close price since 1983", type='l')
+text(weighted.mean(range((x-1)*5/(60*24*365.25),c(0.9,0.1))),weighted.mean(range(y),c(0.98,0.02)),labels=TeX(statEq),adj = 0, cex=1)
+  }
+}, width = 900, height = 800)
+```
+
+### 3. Push-response Analysis
+
+```{r, echo=F}
+fluidRow(style = "padding-bottom: 20px;",
+  selectInput("data3", label = "Choose dataset:",
+              choices = c("TU", "TY"), selected = "TU"),
+  sliderInput("shift", "Shift (multiple of 5min):", min = 1, max = 50000, value = 25),
+  sliderInput("pts", "Number of points:", min = 1, max = 1000, value = 250)
+)
+
+renderPlot({
+  if (input$data3=="TU") {
+    pR_TU <- pushResponse(TU$Close, input$shift, input$pts)
+    x <- pR_TU[[1]]; y <- pR_TU[[2]];
+    reg <- lm(y~x+0)
+    cFT <- coefficients(reg)
+Curve = paste("$mean(p(t+ \\tau )-p(t))|_{p(t)-p(t- \\tau )=x} = ",round(cFT[1],3),"( p(t)-p(t-\\tau) )$",sep="")
+
+    plot(x, y, main=TeX(paste("Push response for TU for $\\tau =",input$shift,"$" ,sep="")), xlab=TeX("$x=p(t)-p(t-\\tau)$"), ylab=TeX("$mean(p(t+ \\tau )-p(t))|_{p(t)-p(t- \\tau )=x}$"), type='l')
+    text(weighted.mean(range(x),c(0.99,0.01)),weighted.mean(range(y[!is.na(y)]),c(0.96,0.04)),labels=TeX(Curve),adj = 0, cex=1.2)
+text(weighted.mean(range(x),c(0.99,0.01)),weighted.mean(range(y[!is.na(y)]),c(0.99,0.01)),labels=TeX(paste("$\\adj.R2 = ",round(summary(reg)$adj.r.squared,3))),adj = 0, cex=1.2)
+abline(0,0, col="black", lty=2, lwd=3)
+abline(0,10^4, col="black", lty=2, lwd=3)
+abline(0,cFT[1], col="red")
+  }
+  else {
+    pR_TY <- pushResponse(TY$Close, input$shift, input$pts)
+    x <- pR_TY[[1]]; y <- pR_TY[[2]];
+    reg <- lm(y~x+0)
+    cFT <- coefficients(reg)
+Curve = paste("$mean(p(t+ \\tau )-p(t))|_{p(t)-p(t- \\tau )=x} = ",round(cFT[1],3),"( p(t)-p(t-\\tau) )$",sep="")
+abline(0,0, col="black", lty=2, lwd=3)
+abline(0,10^4, col="black", lty=2, lwd=3)
+    plot(x, y, main=TeX(paste("Push response for TY for $\\tau =",input$shift,"$" ,sep="")), xlab=TeX("$x=p(t)-p(t-\\tau)$"), ylab=TeX("$mean(p(t+ \\tau )-p(t))|_{p(t)-p(t- \\tau )=x}$"), type='l')
+abline(0,0, col="black", lty=2, lwd=3)
+abline(0,10^4, col="black", lty=2, lwd=3)
+text(weighted.mean(range(x),c(0.99,0.01)),weighted.mean(range(y[!is.na(y)]),c(0.96,0.04)),labels=TeX(Curve),adj = 0, cex=1.2)
+text(weighted.mean(range(x),c(0.99,0.01)),weighted.mean(range(y[!is.na(y)]),c(0.99,0.01)),labels=TeX(paste("$\\adj.R2 = ",round(summary(reg)$adj.r.squared,3))),adj = 0, cex=1.2)
+abline(0,cFT[1], col="red")
+  }
+}, width = 900, height = 800)
+```
+
+### 4. Andrew Lo's Variance Ratio Test
+
+```{r, echo=F}
+fluidRow(style = "padding-bottom: 20px;",
+  selectInput("data4", label = "Choose dataset:",
+              choices = c("TU", "TY"), selected = "TU"),
+  sliderInput("shiftrange", "Shift range (multiple of 5min):", min = 1, max = 100000, value = c(1, 10000)), 
+  sliderInput("bin", "Number of points: ", min = 1, max = 500, value = 150)
+)
+
+renderPlot({
+  tau <- seq(input$shiftrange[1], input$shiftrange[2], length.out=input$bin)
+  if (input$data4=="TU") {
+    plot(tau, VRtest(TU$Close, tau), main="Andrew Lo's Variance Ratio Test for TU", xlab=TeX("$\\tau$"),ylab=TeX("$VR(\\tau)$"), type='l')
+  }
+  else {
+    plot(tau, VRtest(TY$Close, tau), main="Andrew Lo's Variance Ratio Test for TY", xlab=TeX("$\\tau$"),ylab=TeX("$VR(\\tau)$"), type='l')
+  }
+  abline(1,0, col="red")
+}, width = 900, height = 800)
+```
