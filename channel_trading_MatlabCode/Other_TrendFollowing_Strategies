@@ -1,0 +1,25 @@
+More trend following strategies. Perhaps we could just mention it in the presentation on a slide or two like how the last presentation did?
+
+-Moving Average crossover.
+    -Define two moving averages: one short-term and one long-term
+    -When the short-term crosses above the long-term, go long.
+    -When the short-term crosses below the long-term, go flat (or go short).
+    
+-Types of moving averages
+    -Simple
+        -Simple mean of the price of the past X number of days.
+    -Weigthed
+        -Weighted average by placing more weight on the more recent prices.
+    -Exponential
+        -A type of weighted moving average.
+        -For a price that occured i days ago, the weight would be a^i. With 0<a<1
+        
+-MACD (Moving Average Convergence Divergence)
+    -Another popular signal is the MACD.
+    -Define the MACD as the difference between two exponential moving averages (for example say 12-day and 26-day)
+        -MACD = 12day EMA - 26day EMA
+    -Take an EMA of the MACD as your signal.
+        -When the signal turns positive, go long.
+        -When the signal turns negative, go flat (or go short)
+        
+        
