@@ -18,6 +18,9 @@ n = size(open, 1);
 trades = zeros(n, 1);
 prices = zeros(n, 1);
 
+pointValue = 10; %PL
+%pointValue = 100; %CO
+
 %global currentPosition;
 currentPos = 0;
 prevPeak = 0.00;
@@ -79,7 +82,7 @@ if check ~= 0
                 trades(i) = -1;
                 %We use the min function in case there was a gap in the price.
                 %prices(j,k,i) = min(open(i), (1-stpPct)*prevPeak);
-                prices(i) = min(open(i), ( floor( 10*(1-stpPct)*prevPeak) /10) );
+                prices(i) = min(open(i), ( floor( pointValue*(1-stpPct)*prevPeak) /pointValue) );
                 currentPos = 0;
             else
                 %trades(j,k,i) = 0;
@@ -99,7 +102,7 @@ if check ~= 0
                 trades(i) = 1;
                 %We use the max function in case there was a gap in the price.
                 %prices(j,k,i) = max(open(i), (1+stpPct)*prevTrough);
-                prices(i) = max(open(i), ( ceil( 128*(1+stpPct)*prevTrough) )/ 128);
+                prices(i) = max(open(i), ( ceil( pointValue*(1+stpPct)*prevTrough) )/ pointValue);
                 currentPos = 0;
             else
                 %trades(j,k,i) = 0;
@@ -115,6 +118,7 @@ if check ~= 0
         %currentPosition(j,k,i) = currentPos;
 
     end 
+    
 else
     
     for i = start:stop
@@ -175,7 +179,7 @@ else
                 portTrades(i) = -1;
                 %We use the min function in case there was a gap in the price.
                 %prices(j,k,i) = min(open(i), (1-stpPct)*prevPeak);
-                prices(i) = min(open(i), ( floor( 10*(1-stpPct)*prevPeak) /10) );
+                prices(i) = min(open(i), ( floor( pointValue*(1-stpPct)*prevPeak) /pointValue) );
                 portPrices(i) = prices(i);
                 currentPos = 0;
             else
@@ -199,7 +203,7 @@ else
                 portTrades(i) = 1;
                 %We use the max function in case there was a gap in the price.
                 %prices(j,k,i) = max(open(i), (1+stpPct)*prevTrough);
-                prices(i) = max(open(i), ( ceil( 128*(1+stpPct)*prevTrough) )/ 128);
+                prices(i) = max(open(i), ( ceil( pointValue*(1+stpPct)*prevTrough) )/ pointValue);
                 portPrices(i) = prices(i);
                 currentPos = 0;
             else
@@ -234,6 +238,4 @@ elseif currentPos == -1
     prices(stop) = close(stop);
     portPrices(stop) = close(stop);
 end
-%disp(sum(abs(trades)));       
-        
-        
+%disp(sum(abs(trades)));         
