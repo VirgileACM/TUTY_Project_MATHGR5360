@@ -40,10 +40,13 @@ portValue = zeros(n, 1);
 %contractSize = 2000; % TU
 %contractSize = 420; %HO
 contractSize = 50; %PL
+%contractSize = 1000; %CO
 
 %Slippage from Professor's sheet.
-slippage = 19;
+%slippage = 19; %Tu/TY
 %slippage = 70; %HO
+slippage = 148; %PL
+%slippage = 48; %CO
 
 %pointValue = 100; %HO
 pointValue = 1;
