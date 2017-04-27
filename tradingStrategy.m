@@ -9,14 +9,14 @@ function [portfolio] = tradingStrategy(t, tau, date, open, high, low, close, cap
 %tic;
 %Define what channels to test.
 chnLenStart = 500; %roughly one week
-chnLenEnd = 1000; %roughly two months
-chnLenStep = 500; %roughly one day
+chnLenEnd = 10000; %roughly two months
+chnLenStep = 50; %roughly one day
 chnLenVector = chnLenStart:chnLenStep:chnLenEnd;
 
 optimizedChannel = zeros(size(open, 1), 1);
 %Define what stop losses to test.
 stpPctStart = .005;
-stpPctEnd = .01;
+stpPctEnd = .1;
 stpPctStep = .005;
 %global stpPctVector;
 stpPctVector = stpPctStart:stpPctStep:stpPctEnd;
@@ -70,7 +70,7 @@ ld = length(dateIndices);
 %Need to make sure we have enough data to backtest to start off.
 %yearsOfTrading refers to how many years we will test our trading strategy.
 %E.g. 10 means we will test our trading strategy through the last 10 years.
-yearsOfTrading = 3;
+yearsOfTrading = 9-t;
 startingPoint = size(dateIndices,1) - 12*yearsOfTrading;
 i = startingPoint;
 
@@ -153,7 +153,3 @@ save(filename)
 %, portTrades, portfolio, optimizedChannel, optimizedStp);
 
 %toc;
-
-
-
-
