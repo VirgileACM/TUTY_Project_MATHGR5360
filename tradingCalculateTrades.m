@@ -238,4 +238,6 @@ elseif currentPos == -1
     prices(stop) = close(stop);
     portPrices(stop) = close(stop);
 end
-%disp(sum(abs(trades)));         
+%disp(sum(abs(trades)));       
+        
+        
