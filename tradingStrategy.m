@@ -9,14 +9,14 @@ function [portfolio] = tradingStrategy(t, tau, date, open, high, low, close, cap
 %tic;
 %Define what channels to test.
 chnLenStart = 500; %roughly one week
-chnLenEnd = 10000; %roughly two months
+chnLenEnd = 600; %roughly two months
 chnLenStep = 50; %roughly one day
 chnLenVector = chnLenStart:chnLenStep:chnLenEnd;
 
 optimizedChannel = zeros(size(open, 1), 1);
 %Define what stop losses to test.
 stpPctStart = .005;
-stpPctEnd = .1;
+stpPctEnd = .01;
 stpPctStep = .005;
 %global stpPctVector;
 stpPctVector = stpPctStart:stpPctStep:stpPctEnd;
@@ -40,8 +40,8 @@ signal = zeros(n, l);
 
 global portTrades;
 global portPrices;
-portTrades = zeros(n, 1, 'int8');
-portPrices = zeros(n, 1);
+portTrades = zeros(l, 1, 'int8');
+portPrices = zeros(l, 1);
 %trades = zeros(n, m, l, 'int8');
 %prices = zeros(n, m, l);
 
@@ -148,7 +148,8 @@ while i <= (size(dateIndices,1)-tau)
     toc;
 end
 portfolio = portfolio(portfolio~=0);
-filename = strcat(int2str(t), ' ', int2str(tau), ' ', 'data'); 
+%filename = strcat(int2str(t), ' ', int2str(tau), ' ', 'data'); 
+filename = strcat('co', int2str(t), ' ', int2str(tau), ' ', 'data'); 
 save(filename) 
 %, portTrades, portfolio, optimizedChannel, optimizedStp);
 
